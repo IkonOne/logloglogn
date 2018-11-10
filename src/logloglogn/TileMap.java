@@ -4,6 +4,7 @@ import java.util.Random;
 
 public class TileMap {
 	private char[][] _tiles;
+	private char[][] _buffer;
 	private int _width;
 	private int _height;
 	
@@ -14,11 +15,12 @@ public class TileMap {
 		_width = width;
 		_height = height;
 		
+		
 		_tiles = new char[width][height];
+		_buffer = new char[width][height];
 		for (int i = 0; i < _width; i++) {
 			for (int j = 0; j < _height; j++) {
-				System.out.println(Integer.toString(i) + " " + Integer.toString(j));
-				_tiles[i][j] = ' ';
+				_tiles[i][j] = _buffer[i][j] = ' ';
 			}
 		}
 	}
@@ -43,5 +45,44 @@ public class TileMap {
 				_tiles[i][j] = ( rng.nextInt(101) <= fillPct ? '*' : ' ' );
 			}
 		}
+	}
+	
+	public void fillRect(int x, int y, int width, int height, char value) {
+		for(int i = x; i < x + width; i++) {
+			for(int j = y; j < y + height; j++) {
+				setTile(i, j, value);
+			}
+		}
+	}
+	
+	public void smoothMap(int iterations, int numNeighbors) {
+		for(int k = 0; k < iterations; k++) {
+			for(int i = 1; i < _width - 1; i++) {
+				for(int j = 1; j < _height - 1; j++) {
+					int neighbors = countNeighbors(i, j);
+					System.out.println(neighbors);
+					_buffer[i][j] = (neighbors <= numNeighbors ? ' ' : '*');
+				}
+			}
+			swapBuffer();
+		}
+	}
+	
+	private int countNeighbors(int x, int y) {
+		int numNeighbors = 0;
+		for(int i = x - 1; i <= x + 1; i++) {
+			for(int j = y - 1; j <= y + 1; j++) {
+				if(_tiles[i][j] != ' ')
+					numNeighbors++;
+			}
+		}
+		
+		return numNeighbors;
+	}
+	
+	private void swapBuffer() {
+		char[][] oldTiles = _tiles;
+		_tiles = _buffer;
+		_buffer = oldTiles;
 	}
 }
